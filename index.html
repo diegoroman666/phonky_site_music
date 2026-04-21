@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PHONK & RAP // UNDERGROUND VAULT</title>
+    <title>The Phonnk & Rap Side // Music 4 U</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Creepster&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -34,6 +34,9 @@
             background-attachment: fixed;
             background-position: center;
             overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Efecto de líneas de escaneo (optimizado para móvil) */
@@ -422,9 +425,91 @@
             text-align: left;
         }
 
+        /* ===== NAVBAR FILTRO ===== */
+        .filter-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(90deg, rgba(10,0,0,0.97) 0%, rgba(5,5,15,0.97) 100%);
+            border-bottom: 2px solid var(--accent-purple);
+            padding: 10px 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 15px rgba(138, 43, 226, 0.3);
+        }
+        .filter-navbar .eye-icon {
+            font-size: 1.4rem;
+            animation: eyePulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 6px var(--accent-red));
+        }
+        @keyframes eyePulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+        .filter-navbar label {
+            color: var(--accent-red);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Creepster', cursive;
+            white-space: nowrap;
+        }
+        .filter-input {
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 8px 14px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            border-radius: 20px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            width: 100%;
+            max-width: 350px;
+        }
+        .filter-input:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.4);
+        }
+        .filter-input::placeholder { color: #666; }
+
+        /* ===== FOOTER FIJO AL FONDO ===== */
+        .site-footer {
+            margin-top: auto;
+            background: linear-gradient(180deg, rgba(5,5,5,1) 0%, rgba(0,0,0,1) 100%);
+            border-top: 2px solid var(--accent-red);
+            padding: 20px 1rem;
+            text-align: center;
+            color: #666;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 -2px 15px rgba(255, 0, 60, 0.15);
+        }
+        .site-footer .dev-name {
+            color: var(--accent-purple);
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .site-footer .dev-email {
+            color: var(--accent-red);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .site-footer .dev-email:hover { color: #fff; }
+        .site-footer .footer-line {
+            margin-top: 6px;
+            color: #444;
+        }
+
         @media (max-width: 480px) {
             .action-btns { flex-direction: column; }
             .btn { width: 100%; }
+            .filter-navbar { flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -442,12 +527,19 @@
         </div>
     </div>
 
+    <!-- NAVBAR FILTRO CON OJO -->
+    <nav class="filter-navbar" id="filter-navbar">
+        <span class="eye-icon">👁️</span>
+        <label for="search-filter">Buscar por filtro:</label>
+        <input type="text" id="search-filter" class="filter-input" placeholder="Artista, canción, álbum..." oninput="filterArtists(this.value)">
+    </nav>
+
     <header>
         <div class="title-container">
-            <h1>THE PHONK SYNDICATE</h1>
+            <h1>The Phonnk & Rap Side</h1>
             <span class="login-lock" onclick="openLogin()" title="Acceso Manager">🔒</span>
         </div>
-        <p class="subtitle">SAD SOUNDCLOUD x LIGHTSIDE MUSIC // CURATED VAULT</p>
+        <p class="subtitle">THE PHONKY SIDE MUSIC 4 U</p>
         
         <div class="user-nav">
             <a href="#main-grid">🎧 Bóveda</a>
@@ -524,6 +616,13 @@
         </div>
 
     </div>
+
+    <!-- FOOTER ANCLADO AL FONDO -->
+    <footer class="site-footer">
+        <p>Sitio desarrollado por <span class="dev-name">Diego Román</span></p>
+        <p><a href="mailto:25reid88@gmail.com" class="dev-email">25reid88@gmail.com</a></p>
+        <p class="footer-line">© 2026 — Todos los derechos reservados</p>
+    </footer>
 
     <script>
         // ESTADO DE SESIÓN
@@ -846,6 +945,20 @@
                 if(isManager) document.body.classList.add('is-manager');
                 else document.body.classList.remove('is-manager');
             }
+
+            // FILTRO DE ARTISTAS
+            window.filterArtists = function(query) {
+                const cards = document.querySelectorAll('.artist-card');
+                const q = query.toLowerCase().trim();
+                cards.forEach(card => {
+                    const name = (card.querySelector('.artist-name')?.textContent || '').toLowerCase();
+                    const song = (card.querySelector('.track-name')?.textContent || '').toLowerCase();
+                    const album = (card.querySelector('.album-name')?.textContent || '').toLowerCase();
+                    const bio = (card.querySelector('.artist-bio')?.textContent || '').toLowerCase();
+                    const match = !q || name.includes(q) || song.includes(q) || album.includes(q) || bio.includes(q);
+                    card.style.display = match ? '' : 'none';
+                });
+            };
 
             renderGrid(); renderPlaylist(); renderFavorites();
         });
