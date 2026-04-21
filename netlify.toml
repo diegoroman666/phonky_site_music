@@ -3,3 +3,8 @@
   publish = "."
   command = ""
 
+[[redirects]]
+  from = "/phonky_site.html"
+  to = "/"
+  status = 301
+
