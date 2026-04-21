@@ -681,7 +681,7 @@
                     card.innerHTML = `
                         <!-- VISTA PÚBLICA -->
                         <div class="view-mode" id="view-${artist.id}" style="display:flex; flex-direction:column; height:100%;">
-                            <img src="${artist.img}" alt="Carátula" class="cover-art" onerror="this.src='https://via.placeholder.com/600x400/111/ff003c?text=FALTA+IMAGEN'">
+                            <img src="${artist.img}" alt="Carátula" class="cover-art" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22400%22><rect fill=%22%23111%22 width=%22600%22 height=%22400%22/><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23ff003c%22 font-family=%22monospace%22 font-size=%2220%22>FALTA IMAGEN</text></svg>'">
                             <div class="card-content">
                                 <h3 class="artist-name">${artist.name}</h3>
                                 <div class="track-info-box">
