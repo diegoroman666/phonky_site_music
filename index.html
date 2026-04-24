@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Phonnk & Rap Side // Music 4 U</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Creepster&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #050505;
@@ -506,6 +507,72 @@
             color: #444;
         }
 
+        /* ===== STATS BADGES (visitas + suscriptores) ===== */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .stat-badge {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--terminal-green);
+            color: var(--terminal-green);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            box-shadow: 0 0 8px rgba(0, 255, 65, 0.2);
+        }
+        .stat-badge.subs { border-color: #ff3366; color: #ff3366; box-shadow: 0 0 8px rgba(255, 51, 102, 0.2); }
+        .stat-badge strong { color: #fff; margin-left: 4px; }
+
+        /* ===== FORMULARIO DE SUSCRIPCIÓN ===== */
+        .subscribe-box {
+            margin: 2rem auto;
+            max-width: 500px;
+            background: #0a0a0a;
+            border: 1px solid var(--accent-purple);
+            border-radius: 8px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.2);
+        }
+        .subscribe-box h3 {
+            font-family: 'Creepster', cursive;
+            color: var(--accent-purple);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            font-size: 1.4rem;
+        }
+        .subscribe-box p { color: #888; font-size: 0.8rem; margin-bottom: 12px; }
+        .subscribe-form { display: flex; gap: 8px; flex-wrap: wrap; }
+        .subscribe-form input {
+            flex: 1 1 200px;
+            background: #050505;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .subscribe-form input:focus { border-color: var(--accent-purple); outline: none; }
+        .subscribe-form button {
+            background: var(--accent-purple);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+        .subscribe-form button:hover { background: #fff; color: var(--accent-purple); }
+        #subscribe-msg { margin-top: 10px; font-size: 0.85rem; display: none; }
+
         @media (max-width: 480px) {
             .action-btns { flex-direction: column; }
             .btn { width: 100%; }
@@ -519,8 +586,8 @@
     <div class="login-overlay" id="login-modal">
         <div class="login-box">
             <h3>ACCESO MANAGER</h3>
-            <input type="text" id="login-user" class="edit-input" placeholder="Correo (manager@phkst.com)">
-            <input type="password" id="login-pass" class="edit-input" placeholder="Contraseña Maestra">
+            <input type="email" id="login-user" class="edit-input" placeholder="email@dominio.com">
+            <input type="password" id="login-pass" class="edit-input" placeholder="Contraseña">
             <button class="btn btn-save" style="width:100%; margin-top:10px; padding: 12px;" onclick="attemptLogin()">INGRESAR AL SINDICATO</button>
             <button class="btn" style="width:100%; margin-top:10px; padding: 12px;" onclick="closeLogin()">CANCELAR</button>
             <p id="login-error" style="color: red; font-size: 0.8rem; margin-top: 15px; display: none;">Credenciales incorrectas. Acceso denegado.</p>
@@ -545,7 +612,13 @@
             <a href="#main-grid">🎧 Bóveda</a>
             <a href="#favorites-section">❤️ Favoritos</a>
             <a href="#playlist-section">📝 Playlist</a>
+            <a href="#subscribe-section">✉️ Suscribirse</a>
             <a href="#" class="admin-only" onclick="logout()" style="border-color:red; color:red;">🔓 Cerrar Sesión Manager</a>
+        </div>
+
+        <div class="stats-bar">
+            <span class="stat-badge">👁️ VISITAS:<strong id="stat-visits">…</strong></span>
+            <span class="stat-badge subs">✉️ SUSCRIPTORES:<strong id="stat-subs">…</strong></span>
         </div>
 
         <div class="radio-station">
@@ -560,80 +633,7 @@
     <div class="container">
         <h2 class="section-title">ARCHIVO DE ARTISTAS</h2>
         
-        <div class="artist-grid" id="main-grid">
-            <div class="artist-card-init" style="display:none;">
-                <span class="init-name">WINDSMOKE</span>
-                <span class="init-song">LIKE A 34 w/ GUCCIGARETTE</span>
-                <span class="init-album">YouTube Release</span>
-                <span class="init-img">https://i.ytimg.com/vi/8-ey0AnP6Eo/hqdefault.jpg</span>
-                <span class="init-bio">Info...</span>
-                <span class="init-yt">https://www.youtube.com/embed/8-ey0AnP6Eo</span>
-            </div>
-            <div class="artist-card-init" style="display:none;">
-                <span class="init-name">SOUDIERE & MYRROR</span>
-                <span class="init-song">KEEP IT 100</span>
-                <span class="init-album">YouTube Release</span>
-                <span class="init-img">https://i.ytimg.com/vi/A7vjlJ7XZ9E/hqdefault.jpg</span>
-                <span class="init-bio">Info...</span>
-                <span class="init-yt">https://www.youtube.com/embed/A7vjlJ7XZ9E</span>
-            </div>
-            <div class="artist-card-init" style="display:none;">
-                <span class="init-name">VSVS ft. SOUDIERE</span>
-                <span class="init-song">STANDIN ON TOP</span>
-                <span class="init-album">YouTube Release</span>
-                <span class="init-img">https://i.ytimg.com/vi/HK5eWubqpUQ/hqdefault.jpg</span>
-                <span class="init-bio">Info...</span>
-                <span class="init-yt">https://www.youtube.com/embed/HK5eWubqpUQ</span>
-            </div>
-            <div class="artist-card-init" style="display:none;">
-                <span class="init-name">MARKITAN</span>
-                <span class="init-song">LET ME KNOW</span>
-                <span class="init-album">YouTube Release</span>
-                <span class="init-img">https://i.ytimg.com/vi/CU6KV2PRS20/hqdefault.jpg</span>
-                <span class="init-bio">Info...</span>
-                <span class="init-yt">https://www.youtube.com/embed/CU6KV2PRS20</span>
-            </div>
-            <div class="artist-card-init" style="display:none;">
-                <span class="init-name">Tea 茶</span>
-                <span class="init-song">ITCHIN' FOR THAT PAPER</span>
-                <span class="init-album">YouTube Release</span>
-                <span class="init-img">https://i.ytimg.com/vi/e9_kZ1rDwAo/hqdefault.jpg</span>
-                <span class="init-bio">Info...</span>
-                <span class="init-yt">https://www.youtube.com/embed/e9_kZ1rDwAo</span>
-            </div>
-            <div class="artist-card-init" style="display:none;">
-                <span class="init-name">Erickd - Topic</span>
-                <span class="init-song">Dusk</span>
-                <span class="init-album">YouTube Release</span>
-                <span class="init-img">https://i.ytimg.com/vi/4Y5XtuuM8Q0/hqdefault.jpg</span>
-                <span class="init-bio">Info...</span>
-                <span class="init-yt">https://www.youtube.com/embed/4Y5XtuuM8Q0</span>
-            </div>
-            <div class="artist-card-init" style="display:none;">
-                <span class="init-name">Roland Jones - Topic</span>
-                <span class="init-song">Loyalty</span>
-                <span class="init-album">Groove Guide EP</span>
-                <span class="init-img">https://i.ytimg.com/vi/tkjFpSVO01c/hqdefault.jpg</span>
-                <span class="init-bio">Sonido crudo y agresivo. Ritmos pesados que caracterizan el lado oscuro del phonk.</span>
-                <span class="init-yt">https://www.youtube.com/embed/tkjFpSVO01c</span>
-            </div>
-            <div class="artist-card-init" style="display:none;">
-                <span class="init-name">SOUDIERE</span>
-                <span class="init-song">ALL IN YOUR DREAMS</span>
-                <span class="init-album">For Tha Haunt (Álbum)</span>
-                <span class="init-img">https://i.ytimg.com/vi/LkLgVHTwAZg/hqdefault.jpg</span>
-                <span class="init-bio">Maestro de los samples clásicos de Memphis con bajos distorsionados. Esencial.</span>
-                <span class="init-yt">https://www.youtube.com/embed/LkLgVHTwAZg</span>
-            </div>
-            <div class="artist-card-init" style="display:none;">
-                <span class="init-name">Roland Jones - Topic</span>
-                <span class="init-song">Money Conver</span>
-                <span class="init-album">Cosmic Dust EP</span>
-                <span class="init-img">https://i.ytimg.com/vi/_LnKpei27tY/hqdefault.jpg</span>
-                <span class="init-bio">Atmósferas espaciales combinadas con percusiones secas. Un viaje al Lightside Music.</span>
-                <span class="init-yt">https://www.youtube.com/embed/_LnKpei27tY</span>
-            </div>
-        </div>
+        <div class="artist-grid" id="main-grid"></div>
 
         <div class="collection-container favs" id="favorites-section">
             <h2 class="section-title" style="border-color: #ff3366; font-size: clamp(1.2rem, 4vw, 1.5rem); margin-bottom: 10px;">
@@ -650,6 +650,17 @@
             <p style="color: #888; font-size: 0.85rem; margin-bottom: 15px;">Añade canciones desde la bóveda para crear tu cola personalizada.</p>
             <ul class="collection-list" id="playlist-ul"></ul>
             <button class="btn-play-all" onclick="playPlaylistInRadio()">▶️ REPRODUCIR PLAYLIST EN RADIO</button>
+        </div>
+
+        <!-- FORMULARIO DE SUSCRIPCIÓN -->
+        <div class="subscribe-box" id="subscribe-section">
+            <h3>✉️ ÚNETE AL SINDICATO</h3>
+            <p>Recibe novedades cuando se agreguen nuevos tracks a la bóveda.</p>
+            <div class="subscribe-form">
+                <input type="email" id="subscribe-email" placeholder="tu@email.com" required>
+                <button onclick="subscribe()">SUSCRIBIRME</button>
+            </div>
+            <p id="subscribe-msg"></p>
         </div>
 
         <!-- CONTROLES MANAGER -->
@@ -672,38 +683,60 @@
     </footer>
 
     <script>
-        // ESTADO DE SESIÓN
-        let isManager = sessionStorage.getItem('phonk_is_manager') === 'true';
+        // ===== CONFIG SUPABASE =====
+        const SUPABASE_URL = 'https://cfkmweoleddzqihrjiki.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNma213ZW9sZWRkenFpaHJqaWtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMzExOTQsImV4cCI6MjA5MjYwNzE5NH0.i90Yw89qGGt9aM5fqzhoheq3hoOK-6PCjfS6wWxIHwA';
+        const MANAGER_EMAIL = '25reid88@gmail.com';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        document.addEventListener("DOMContentLoaded", () => {
+        // ESTADO
+        let isManager = false;
+        let artistsData = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
             const grid = document.getElementById('main-grid');
-            
-            // DATOS
-            let artistsData = JSON.parse(localStorage.getItem('phonk_vault_artists_v6'));
+
+            // Colecciones del usuario (locales por dispositivo)
             let playlistData = JSON.parse(localStorage.getItem('phonk_vault_playlist')) || [];
             let favoritesData = JSON.parse(localStorage.getItem('phonk_vault_favorites')) || [];
             let ratingsData = JSON.parse(localStorage.getItem('phonk_vault_ratings')) || {};
 
+            // Verifica sesión Supabase
+            const { data: { session } } = await sb.auth.getSession();
+            isManager = session?.user?.email === MANAGER_EMAIL;
             applyAuthState();
 
-            if (!artistsData || artistsData.length === 0) {
-                artistsData = [];
-                const inits = document.querySelectorAll('.artist-card-init');
-                inits.forEach((item, index) => {
-                    artistsData.push({
-                        id: Date.now() + index,
-                        name: item.querySelector('.init-name').innerText,
-                        song: item.querySelector('.init-song').innerText,
-                        album: item.querySelector('.init-album').innerText,
-                        img: item.querySelector('.init-img').innerText,
-                        bio: item.querySelector('.init-bio').innerText,
-                        ytLink: item.querySelector('.init-yt').innerText
-                    });
-                });
-                saveData();
+            // Refresca estado si la sesión cambia
+            sb.auth.onAuthStateChange((_event, session) => {
+                isManager = session?.user?.email === MANAGER_EMAIL;
+                applyAuthState();
+            });
+
+            // Carga inicial: tracks + stats (en paralelo)
+            await Promise.all([loadTracks(), loadStats()]);
+
+            async function loadTracks() {
+                const { data, error } = await sb.from('tracks').select('*').order('created_at', { ascending: false });
+                if (error) { console.error('Error cargando tracks:', error); return; }
+                artistsData = (data || []).map(t => ({
+                    id: t.id, name: t.name, song: t.song, album: t.album,
+                    img: t.img, bio: t.bio, ytLink: t.yt_link
+                }));
             }
 
-            function saveData() { localStorage.setItem('phonk_vault_artists_v6', JSON.stringify(artistsData)); }
+            async function loadStats() {
+                const [{ data: visits }, { data: subs }] = await Promise.all([
+                    sb.rpc('increment_visits'),
+                    sb.rpc('subscriber_count')
+                ]);
+                document.getElementById('stat-visits').textContent = visits ?? 0;
+                document.getElementById('stat-subs').textContent = subs ?? 0;
+            }
+            window._refreshSubCount = async () => {
+                const { data } = await sb.rpc('subscriber_count');
+                document.getElementById('stat-subs').textContent = data ?? 0;
+            };
+
             function saveUserCollections() {
                 localStorage.setItem('phonk_vault_playlist', JSON.stringify(playlistData));
                 localStorage.setItem('phonk_vault_favorites', JSON.stringify(favoritesData));
@@ -917,75 +950,113 @@
                 }
             };
 
-            window.saveArtist = function(id) {
+            window.saveArtist = async function(id) {
                 if(!isManager) return;
                 const editContainer = document.getElementById(`edit-${id}`);
-                const artistIndex = artistsData.findIndex(a => a.id === id);
-                if (artistIndex > -1) {
-                    let ytUrl = editContainer.querySelector('.edit-yt').value.trim();
-                    // Auto-corregir enlaces pegados accidentalmente en formato normal al guardar
-                    if(ytUrl.includes('watch?v=')) {
-                        const vId = ytUrl.split('watch?v=')[1].split('&')[0];
-                        ytUrl = `https://www.youtube.com/embed/${vId}`;
-                    }
-                    artistsData[artistIndex] = { 
-                        ...artistsData[artistIndex], 
-                        name: editContainer.querySelector('.edit-name').value, 
-                        song: editContainer.querySelector('.edit-song').value,
-                        album: editContainer.querySelector('.edit-album').value,
-                        img: editContainer.querySelector('.edit-img').value, 
-                        bio: editContainer.querySelector('.edit-bio').value,
-                        ytLink: ytUrl
-                    };
-                    saveData(); renderGrid();
+                let ytUrl = editContainer.querySelector('.edit-yt').value.trim();
+                if(ytUrl.includes('watch?v=')) {
+                    const vId = ytUrl.split('watch?v=')[1].split('&')[0];
+                    ytUrl = `https://www.youtube.com/embed/${vId}`;
                 }
+                const updates = {
+                    name:    editContainer.querySelector('.edit-name').value,
+                    song:    editContainer.querySelector('.edit-song').value,
+                    album:   editContainer.querySelector('.edit-album').value,
+                    img:     editContainer.querySelector('.edit-img').value,
+                    bio:     editContainer.querySelector('.edit-bio').value,
+                    yt_link: ytUrl
+                };
+                const { error } = await sb.from('tracks').update(updates).eq('id', id);
+                if (error) return alert('❌ Error guardando: ' + error.message);
+                await loadTracks(); renderGrid();
             };
 
-            window.deleteArtist = function(id) {
+            window.deleteArtist = async function(id) {
                 if(!isManager) return;
-                if(confirm("¿Seguro que quieres eliminar este track?")) {
-                    artistsData = artistsData.filter(a => a.id !== id);
-                    saveData(); renderGrid();
-                }
+                if(!confirm("¿Seguro que quieres eliminar este track?")) return;
+                const { error } = await sb.from('tracks').delete().eq('id', id);
+                if (error) return alert('❌ Error eliminando: ' + error.message);
+                await loadTracks(); renderGrid();
             };
 
-            window.addNewArtist = function() {
+            window.addNewArtist = async function() {
                 if(!isManager) return;
-                const newArtist = { id: Date.now(), name: "ARTISTA", song: "Canción", album: "Álbum o EP", img: "", bio: "Info...", ytLink: "" };
-                artistsData.unshift(newArtist);
-                saveData(); renderGrid(); toggleEdit(newArtist.id);
+                const newTrack = {
+                    name: "ARTISTA NUEVO",
+                    song: "Canción",
+                    album: "Álbum o EP",
+                    img: "",
+                    bio: "Info...",
+                    yt_link: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+                };
+                const { data, error } = await sb.from('tracks').insert(newTrack).select().single();
+                if (error) return alert('❌ Error creando: ' + error.message);
+                await loadTracks(); renderGrid(); toggleEdit(data.id);
                 window.scrollTo({ top: document.querySelector('.artist-grid').offsetTop - 50, behavior: 'smooth' });
             };
 
-            window.factoryReset = function() {
+            window.factoryReset = async function() {
                 if(!isManager) return;
-                if(confirm("Se purgará la bóveda y quedarán solo los 3 iniciales. ¿Seguro?")) {
-                    localStorage.removeItem('phonk_vault_artists_v6');
-                    location.reload();
-                }
+                if(!confirm("⚠️ Esto BORRARÁ TODOS los tracks de la base de datos para todos los usuarios. ¿Seguro?")) return;
+                const { error } = await sb.from('tracks').delete().neq('id', 0);
+                if (error) return alert('❌ Error: ' + error.message);
+                await loadTracks(); renderGrid();
             };
 
-            // LOGIN
+            // LOGIN (vía Supabase Auth)
             window.openLogin = function() {
                 if(isManager) return alert("Sesión Manager ya iniciada.");
                 document.getElementById('login-modal').style.display = 'flex';
                 document.getElementById('login-error').style.display = 'none';
-                document.getElementById('login-pass').value = ''; // Limpiar campo
+                document.getElementById('login-pass').value = '';
             };
             window.closeLogin = function() { document.getElementById('login-modal').style.display = 'none'; };
-            window.attemptLogin = function() {
-                const u = document.getElementById('login-user').value.trim();
-                const p = document.getElementById('login-pass').value.trim();
-                // Credenciales actualizadas
-                if(u === 'manager@phkst.com' && p === 'Ph0nk$ynd1c4t3_M4n4g3r!2026#') {
-                    sessionStorage.setItem('phonk_is_manager', 'true');
-                    isManager = true;
-                    closeLogin(); applyAuthState();
-                } else document.getElementById('login-error').style.display = 'block';
+            window.attemptLogin = async function() {
+                const email = document.getElementById('login-user').value.trim();
+                const password = document.getElementById('login-pass').value.trim();
+                const errEl = document.getElementById('login-error');
+                errEl.style.display = 'none';
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
+                if (error || data?.user?.email !== MANAGER_EMAIL) {
+                    errEl.textContent = error?.message || 'Email no autorizado como manager.';
+                    errEl.style.display = 'block';
+                    if (data?.user) await sb.auth.signOut();
+                    return;
+                }
+                isManager = true;
+                closeLogin(); applyAuthState();
             };
-            window.logout = function() {
-                sessionStorage.removeItem('phonk_is_manager');
+            window.logout = async function() {
+                await sb.auth.signOut();
                 isManager = false; applyAuthState();
+            };
+
+            // SUSCRIPCIÓN
+            window.subscribe = async function() {
+                const email = document.getElementById('subscribe-email').value.trim();
+                const msg = document.getElementById('subscribe-msg');
+                msg.style.display = 'block';
+                if (!email || !email.includes('@')) {
+                    msg.style.color = '#ffaa00';
+                    msg.textContent = '⚠️ Email inválido.';
+                    return;
+                }
+                const { error } = await sb.from('subscribers').insert({ email });
+                if (error) {
+                    if (error.code === '23505') {
+                        msg.style.color = '#ffaa00';
+                        msg.textContent = '⚠️ Este email ya está suscrito.';
+                    } else {
+                        msg.style.color = '#ff003c';
+                        msg.textContent = '❌ Error: ' + error.message;
+                    }
+                    return;
+                }
+                msg.style.color = 'var(--terminal-green)';
+                msg.textContent = '✅ ¡Suscrito al sindicato!';
+                document.getElementById('subscribe-email').value = '';
+                window._refreshSubCount?.();
+                setTimeout(() => msg.style.display = 'none', 3500);
             };
 
             function applyAuthState() {
