@@ -785,6 +785,7 @@
                                 <div class="action-btns admin-only" style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">
                                     <button class="btn" style="border-color:#aaa;" onclick="toggleEdit(${artist.id})">✏️ Editar (Manager)</button>
                                     <button class="btn btn-save" onclick="deleteArtist(${artist.id})">🗑️ Borrar</button>
+                                    <button class="btn btn-playlist" style="flex: 1 1 100%;" onclick="notifySubscribers(${artist.id})">📢 Notificar a suscriptores</button>
                                 </div>
                             </div>
                         </div>
@@ -1001,6 +1002,43 @@
                 const { error } = await sb.from('tracks').delete().neq('id', 0);
                 if (error) return alert('❌ Error: ' + error.message);
                 await loadTracks(); renderGrid();
+            };
+
+            // NOTIFICAR A SUSCRIPTORES (envía emails vía Edge Function)
+            window.notifySubscribers = async function(trackId) {
+                if(!isManager) return;
+                const track = artistsData.find(a => a.id === trackId);
+                if(!track) return;
+                if(!confirm(`📢 ¿Enviar email a TODOS los suscriptores sobre "${track.name} - ${track.song}"?\n\nEsta acción no se puede deshacer.`)) return;
+
+                const btn = event?.target;
+                const originalText = btn?.innerHTML;
+                if(btn) { btn.innerHTML = "⏳ Enviando..."; btn.disabled = true; }
+
+                try {
+                    const { data, error } = await sb.functions.invoke('notify-subscribers', {
+                        body: { track_id: trackId }
+                    });
+                    if (error) throw error;
+                    if (data?.error) throw new Error(data.error);
+
+                    const sent = data?.sent ?? 0;
+                    const total = data?.total ?? 0;
+                    const failed = data?.failed ?? 0;
+                    if (total === 0) {
+                        alert('ℹ️ No hay suscriptores aún.');
+                    } else if (failed > 0) {
+                        alert(`⚠️ Enviados: ${sent}/${total}\nFallaron: ${failed}\n\nRevisa la consola para detalles.`);
+                        console.warn('Errores de envío:', data.errors);
+                    } else {
+                        alert(`✅ Email enviado a ${sent} suscriptor${sent === 1 ? '' : 'es'}.`);
+                    }
+                } catch (e) {
+                    alert('❌ Error: ' + (e.message || 'desconocido'));
+                    console.error(e);
+                } finally {
+                    if(btn) { btn.innerHTML = originalText; btn.disabled = false; }
+                }
             };
 
             // LOGIN (vía Supabase Auth)
