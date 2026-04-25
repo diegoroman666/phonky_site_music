@@ -588,7 +588,7 @@
             <h3>ACCESO MANAGER</h3>
             <input type="email" id="login-user" class="edit-input" placeholder="email@dominio.com">
             <input type="password" id="login-pass" class="edit-input" placeholder="Contraseña">
-            <button class="btn btn-save" style="width:100%; margin-top:10px; padding: 12px;" onclick="attemptLogin()">INGRESAR AL SINDICATO</button>
+            <button class="btn btn-save" style="width:100%; margin-top:10px; padding: 12px;" onclick="attemptLogin()">INGRESAR</button>
             <button class="btn" style="width:100%; margin-top:10px; padding: 12px;" onclick="closeLogin()">CANCELAR</button>
             <p id="login-error" style="color: red; font-size: 0.8rem; margin-top: 15px; display: none;">Credenciales incorrectas. Acceso denegado.</p>
         </div>
@@ -654,8 +654,8 @@
 
         <!-- FORMULARIO DE SUSCRIPCIÓN -->
         <div class="subscribe-box" id="subscribe-section">
-            <h3>✉️ ÚNETE AL SINDICATO</h3>
-            <p>Recibe novedades cuando se agreguen nuevos tracks a la bóveda.</p>
+            <h3>✉️ SUSCRÍBETE AL SITIO</h3>
+            <p>Recibe notificaciones sobre nuevas pistas subidas al sitio.</p>
             <div class="subscribe-form">
                 <input type="email" id="subscribe-email" placeholder="tu@email.com" required>
                 <button onclick="subscribe()">SUSCRIBIRME</button>
@@ -785,6 +785,7 @@
                                 <div class="action-btns admin-only" style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">
                                     <button class="btn" style="border-color:#aaa;" onclick="toggleEdit(${artist.id})">✏️ Editar (Manager)</button>
                                     <button class="btn btn-save" onclick="deleteArtist(${artist.id})">🗑️ Borrar</button>
+                                    <button class="btn btn-playlist" style="flex: 1 1 100%;" onclick="notifySubscribers(${artist.id})">📢 Notificar a suscriptores</button>
                                 </div>
                             </div>
                         </div>
@@ -1003,6 +1004,43 @@
                 await loadTracks(); renderGrid();
             };
 
+            // NOTIFICAR A SUSCRIPTORES (envía emails vía Edge Function)
+            window.notifySubscribers = async function(trackId) {
+                if(!isManager) return;
+                const track = artistsData.find(a => a.id === trackId);
+                if(!track) return;
+                if(!confirm(`📢 ¿Enviar email a TODOS los suscriptores sobre "${track.name} - ${track.song}"?\n\nEsta acción no se puede deshacer.`)) return;
+
+                const btn = event?.target;
+                const originalText = btn?.innerHTML;
+                if(btn) { btn.innerHTML = "⏳ Enviando..."; btn.disabled = true; }
+
+                try {
+                    const { data, error } = await sb.functions.invoke('notify-subscribers', {
+                        body: { track_id: trackId }
+                    });
+                    if (error) throw error;
+                    if (data?.error) throw new Error(data.error);
+
+                    const sent = data?.sent ?? 0;
+                    const total = data?.total ?? 0;
+                    const failed = data?.failed ?? 0;
+                    if (total === 0) {
+                        alert('ℹ️ No hay suscriptores aún.');
+                    } else if (failed > 0) {
+                        alert(`⚠️ Enviados: ${sent}/${total}\nFallaron: ${failed}\n\nRevisa la consola para detalles.`);
+                        console.warn('Errores de envío:', data.errors);
+                    } else {
+                        alert(`✅ Email enviado a ${sent} suscriptor${sent === 1 ? '' : 'es'}.`);
+                    }
+                } catch (e) {
+                    alert('❌ Error: ' + (e.message || 'desconocido'));
+                    console.error(e);
+                } finally {
+                    if(btn) { btn.innerHTML = originalText; btn.disabled = false; }
+                }
+            };
+
             // LOGIN (vía Supabase Auth)
             window.openLogin = function() {
                 if(isManager) return alert("Sesión Manager ya iniciada.");
@@ -1053,7 +1091,7 @@
                     return;
                 }
                 msg.style.color = 'var(--terminal-green)';
-                msg.textContent = '✅ ¡Suscrito al sindicato!';
+                msg.textContent = '✅ ¡Suscrito! Recibirás notificaciones de nuevas pistas.';
                 document.getElementById('subscribe-email').value = '';
                 window._refreshSubCount?.();
                 setTimeout(() => msg.style.display = 'none', 3500);
