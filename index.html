@@ -725,8 +725,15 @@
             }
 
             async function loadStats() {
+                // Si soy el manager, solo LEO el contador sin incrementarlo
+                // (así el conteo refleja solo visitas reales de usuarios)
+                const visitsPromise = isManager
+                    ? sb.from('stats').select('visits').eq('id', 1).single()
+                          .then(r => ({ data: r.data?.visits }))
+                    : sb.rpc('increment_visits');
+
                 const [{ data: visits }, { data: subs }] = await Promise.all([
-                    sb.rpc('increment_visits'),
+                    visitsPromise,
                     sb.rpc('subscriber_count')
                 ]);
                 document.getElementById('stat-visits').textContent = visits ?? 0;
