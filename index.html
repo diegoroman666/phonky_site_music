@@ -625,7 +625,7 @@
             <h2><span class="blink">●</span> LIVE RADIO / UNDERGROUND MIX</h2>
             <!-- Aspect Ratio manejado por CSS o wrapper para full responsividad -->
             <div style="position: relative; width: 100%; aspect-ratio: 16/9;">
-                <iframe id="main-radio-player" style="position:absolute; top:0; left:0; width:100%; height:100%;" src="https://www.youtube-nocookie.com/embed/videoseries?rel=0&amp;playsinline=1&amp;modestbranding=1&amp;list=PL3eVQcnoDh92uNoRm8anUEgFHYflnqvuy" title="Radio Player" referrerpolicy="strict-origin-when-cross-origin" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe>
+                <iframe id="main-radio-player" style="position:absolute; top:0; left:0; width:100%; height:100%;" src="https://www.youtube.com/embed/videoseries?list=PL3eVQcnoDh92uNoRm8anUEgFHYflnqvuy" title="Radio Player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
         </div>
     </header>
@@ -750,44 +750,6 @@
                 localStorage.setItem('phonk_vault_ratings', JSON.stringify(ratingsData));
             }
 
-            // ===== HELPERS DE YOUTUBE =====
-            // Acepta cualquier formato: watch?v=, youtu.be, /embed/, /shorts/, /live/,
-            // un ID pelado de 11 caracteres o incluso un <iframe> pegado entero.
-            const YT_ID_RE   = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^"'\s]*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i;
-            const YT_LIST_RE = /[?&]list=([A-Za-z0-9_-]+)/i;
-
-            function getYouTubeId(raw) {
-                if (!raw) return null;
-                const str = String(raw).trim();
-                const match = str.match(YT_ID_RE);
-                // "videoseries" mide 11 caracteres: es una playlist, no un video.
-                if (match) return match[1] === 'videoseries' ? null : match[1];
-                return /^[A-Za-z0-9_-]{11}$/.test(str) && str !== 'videoseries' ? str : null;
-            }
-
-            function getYouTubeListId(raw) {
-                if (!raw) return null;
-                const match = String(raw).match(YT_LIST_RE);
-                return match ? match[1] : null;
-            }
-
-            // Construye el src definitivo del iframe.
-            // Usamos youtube-nocookie.com (modo de privacidad mejorada): al no enviarse
-            // las cookies de la cuenta de Google, el reproductor deja de devolver
-            // "Video no disponible / restringido por el administrador de Google Workspace".
-            function buildEmbedUrl(raw, extraParams) {
-                const videoId = getYouTubeId(raw);
-                const listId  = getYouTubeListId(raw);
-                if (!videoId && !listId) return '';
-
-                const params = ['rel=0', 'playsinline=1', 'modestbranding=1'];
-                if (listId) params.push(`list=${listId}`);
-                if (extraParams) params.push(extraParams);
-
-                const path = videoId ? `embed/${videoId}` : 'embed/videoseries';
-                return `https://www.youtube-nocookie.com/${path}?${params.join('&')}`;
-            }
-
             window.renderGrid = function() {
                 grid.innerHTML = '';
                 artistsData.forEach(artist => {
@@ -815,8 +777,8 @@
                                 </div>
                                 <p class="artist-bio">${artist.bio}</p>
                                 <div class="embed-container">
-                                    <!-- Robustez para embeds de youtube: URL normalizada + dominio sin cookies -->
-                                    <iframe src="${buildEmbedUrl(artist.ytLink)}" title="${safeSong}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe>
+                                    <!-- Robustez para embeds de youtube -->
+                                    <iframe src="${artist.ytLink}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                                 </div>
                                 
                                 <div class="action-btns">
@@ -913,7 +875,10 @@
             window.addToPlaylist = function(id) {
                 const artist = artistsData.find(a => a.id === id);
                 if (artist) {
-                    const videoId = getYouTubeId(artist.ytLink);
+                    let videoId = null;
+                    const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+                    const match = artist.ytLink.match(ytRegex);
+                    if (match && match[1]) videoId = match[1]; else if (artist.ytLink.includes('/embed/')) videoId = artist.ytLink.split('/embed/')[1].split('?')[0];
 
                     if (videoId) {
                         if(playlistData.some(item => item.videoId === videoId)) return alert("Ya está en tu Playlist.");
@@ -937,7 +902,7 @@
                 if (playlistData.length === 0) return alert("⚠️ Tu playlist está vacía.");
                 const firstVideo = playlistData[0].videoId;
                 const otherVideos = playlistData.slice(1).map(item => item.videoId).join(',');
-                let finalUrl = buildEmbedUrl(firstVideo, 'autoplay=1');
+                let finalUrl = `https://www.youtube.com/embed/${firstVideo}?autoplay=1`;
                 if (otherVideos) finalUrl += `&playlist=${otherVideos}`;
                 document.getElementById('main-radio-player').src = finalUrl;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -957,8 +922,10 @@
                 const editContainer = document.getElementById(`edit-${id}`);
                 let rawYt = editContainer.querySelector('.edit-yt').value.trim();
                 if (!rawYt) return alert("⚠️ Pega el enlace de YouTube.");
-                const videoId = getYouTubeId(rawYt);
-                if (!videoId) return alert("❌ Link inválido.");
+                let videoId = "";
+                const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+                const match = rawYt.match(ytRegex);
+                if (match && match[1]) videoId = match[1]; else if (rawYt.length === 11) videoId = rawYt; else return alert("❌ Link inválido.");
 
                 const originalText = btnElement.innerHTML;
                 btnElement.innerHTML = "⏳ EXTRAYENDO...";
@@ -981,8 +948,8 @@
                     editContainer.querySelector('.edit-name').value = artistName;
                     editContainer.querySelector('.edit-song').value = songName;
                     editContainer.querySelector('.edit-img').value = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
-                    // Embed robusto preventivo (dominio sin cookies)
-                    editContainer.querySelector('.edit-yt').value = buildEmbedUrl(videoId);
+                    // Embed robusto preventivo
+                    editContainer.querySelector('.edit-yt').value = `https://www.youtube.com/embed/${videoId}`;
                     if(editContainer.querySelector('.edit-album').value === "Álbum o EP") editContainer.querySelector('.edit-album').value = "YouTube Release";
                 } catch (error) { alert("⚠️ Error. Verifica que el video sea público."); } 
                 finally {
@@ -994,9 +961,11 @@
             window.saveArtist = async function(id) {
                 if(!isManager) return;
                 const editContainer = document.getElementById(`edit-${id}`);
-                const rawYt = editContainer.querySelector('.edit-yt').value.trim();
-                const ytUrl = buildEmbedUrl(rawYt);
-                if (!ytUrl) return alert("❌ El link de YouTube no es válido.");
+                let ytUrl = editContainer.querySelector('.edit-yt').value.trim();
+                if(ytUrl.includes('watch?v=')) {
+                    const vId = ytUrl.split('watch?v=')[1].split('&')[0];
+                    ytUrl = `https://www.youtube.com/embed/${vId}`;
+                }
                 const updates = {
                     name:    editContainer.querySelector('.edit-name').value,
                     song:    editContainer.querySelector('.edit-song').value,
@@ -1026,7 +995,7 @@
                     album: "Álbum o EP",
                     img: "",
                     bio: "Info...",
-                    yt_link: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&playsinline=1&modestbranding=1"
+                    yt_link: "https://www.youtube.com/embed/dQw4w9WgXcQ"
                 };
                 const { data, error } = await sb.from('tracks').insert(newTrack).select().single();
                 if (error) return alert('❌ Error creando: ' + error.message);
